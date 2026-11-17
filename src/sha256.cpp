@@ -1,5 +1,6 @@
 #include "sha256.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <stdexcept>
 

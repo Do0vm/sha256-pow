@@ -1,4 +1,5 @@
 // Demo: verify real Bitcoin blocks, re-mine the genesis block, and measure hashrate.
+#include <algorithm>
 #include <cstdio>
 #include <thread>
 
@@ -28,11 +29,11 @@ int main() {
                     r->hashes / r->seconds / 1e6);
     }
 
-    // 2) Hashrate scaling: find a 28-bit "toy difficulty" hash, 1 thread vs all.
+    // 2) Hashrate scaling: find a 26-bit "toy difficulty" hash, 1 thread vs all.
     g.time += 1;  // a fresh header, so the answer is not already known
     for (unsigned t : {1u, threads}) {
-        if (auto r = btc::mine(g, 0, 0xffffffffu, t, 28)) {
-            std::printf("  %2u thread(s): 28 zero bits at nonce %10u after %6.1f M hashes, %.2f MH/s\n",
+        if (auto r = btc::mine(g, 0, 0xffffffffu, t, 26)) {
+            std::printf("  %2u thread(s): 26 zero bits at nonce %10u after %6.1f M hashes, %.2f MH/s\n",
                         t, r->nonce, r->hashes / 1e6, r->hashes / r->seconds / 1e6);
         }
         if (t == threads) break;
