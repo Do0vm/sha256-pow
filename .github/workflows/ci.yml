@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} (${{ matrix.compiler }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, compiler: gcc, cxx: g++ }
+          - { os: ubuntu-latest, compiler: clang, cxx: clang++ }
+          - { os: windows-latest, compiler: msvc, cxx: cl }
+    steps:
+      - uses: actions/checkout@v5
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release ${{ matrix.os != 'windows-latest' && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Mine
+        if: matrix.os == 'ubuntu-latest'
+        run: ./build/pow_mine
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build with ASan + UBSan
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPOW_SANITIZE=ON -DCMAKE_CXX_COMPILER=clang++
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
